@@ -46,6 +46,7 @@ class StylesheetWorker : public NanAsyncWorker {
   // here, so everything we need for input and output
   // should go on `this`.
   void Execute () {
+    libxmljs::WorkerSentinel workerSentinel(workerParent);
     result = xsltParseStylesheetDoc(doc->xml_obj);
   }
 
@@ -65,6 +66,7 @@ class StylesheetWorker : public NanAsyncWorker {
   };
 
  private:
+  libxmljs::WorkerParent workerParent;
   libxmljs::XmlDocument* doc;
   xsltStylesheetPtr result;
 };
@@ -92,7 +94,7 @@ char** PrepareParams(Handle<Array> array) {
     memset(params, 0, sizeof(char *) * (array->Length() + 1));
     for (int i = 0; i < array->Length(); i++) {
         Local<String> param = array->Get(NanNew<Integer>(i))->ToString();
-        params[i] = (char *)malloc(sizeof(char) * (param->Length() + 1));
+        params[i] = (char *)malloc(sizeof(char) * (param->Utf8Length() + 1));
         param->WriteUtf8(params[i]);
     }
     return params;
@@ -140,6 +142,7 @@ class ApplyWorker : public NanAsyncWorker {
   // here, so everything we need for input and output
   // should go on `this`.
   void Execute () {
+    libxmljs::WorkerSentinel workerSentinel(workerParent);
     result = xsltApplyStylesheet(stylesheet->stylesheet_obj, docSource->xml_obj, (const char **)params);
   }
 
@@ -171,6 +174,7 @@ class ApplyWorker : public NanAsyncWorker {
   };
 
  private:
+  libxmljs::WorkerParent workerParent;
   Stylesheet* stylesheet;
   libxmljs::XmlDocument* docSource;
   char** params;
